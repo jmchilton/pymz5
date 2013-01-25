@@ -1,0 +1,2 @@
+msconvert --filter="index [0,25]" 11_22.mzml  --outfile test.mzml
+msconvert --mz5 test.mzML --outfile test.mz5

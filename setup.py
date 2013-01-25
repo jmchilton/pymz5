@@ -21,7 +21,7 @@ import numpy
 
 import configure
 
-VERSION = '2.1.1'
+VERSION = '0.0.1'
 
 def localpath(*args):
     return op.abspath(reduce(op.join, (op.dirname(__file__),)+args))
@@ -76,7 +76,7 @@ MODULES =  ['defs','_errors','_objects','_proxy', 'h5fd', 'h5z',
             'h5p',
             'h5d', 'h5a', 'h5f', 'h5g',
             'h5l', 'h5o',
-            'h5ds']
+            'h5ds', '_mz5_helpers', '_mz5_types']
 
 EXTRA_SRC = {'h5z': [ localpath("lzf/lzf_filter.c"),
                       localpath("lzf/lzf/lzf_c.c"),
@@ -125,7 +125,7 @@ class test(Command):
         oldpath = sys.path
         try:
             sys.path = [op.abspath(buildobj.build_lib)] + oldpath
-            suite = unittest.TestLoader().discover(op.join(buildobj.build_lib,'h5py'))
+            suite = unittest.TestLoader().discover(op.join(buildobj.build_lib,'mz5'))
             result = unittest.TextTestRunner(verbosity=self.verbosity+1).run(suite)
             if not result.wasSuccessful():
                 sys.exit(1)
@@ -145,29 +145,15 @@ Intended Audience :: Science/Research
 License :: OSI Approved :: BSD License
 Programming Language :: Python
 Topic :: Scientific/Engineering
-Topic :: Database
 Topic :: Software Development :: Libraries :: Python Modules
 Operating System :: Unix
 Operating System :: POSIX :: Linux
-Operating System :: MacOS :: MacOS X
-Operating System :: Microsoft :: Windows
 """
 
-short_desc = "Read and write HDF5 files from Python"
+short_desc = "High-level Python API providing access to mz5 files."
 
 long_desc = \
 """
-The h5py package provides both a high- and low-level interface to the HDF5
-library from Python. The low-level interface is intended to be a complete
-wrapping of the HDF5 API, while the high-level component supports  access to
-HDF5 files, datasets and groups using established Python and NumPy concepts.
-
-A strong emphasis on automatic conversion between Python (Numpy) datatypes and
-data structures and their HDF5 equivalents vastly simplifies the process of
-reading and writing data from Python.
-
-Supports HDF5 versions 1.8.3 and higher.  On Windows, HDF5 is included with
-the installer.
 """
 
 if os.name == 'nt':
@@ -176,18 +162,18 @@ else:
     package_data = {'h5py': ['*.pyx']}
 
 setup(
-  name = 'h5py',
+  name = 'pymz5',
   version = VERSION,
   description = short_desc,
   long_description = long_desc,
   classifiers = [x for x in cls_txt.split("\n") if x],
-  author = 'Andrew Collette',
-  author_email = 'andrew dot collette at gmail dot com',
-  maintainer = 'Andrew Collette',
-  maintainer_email = 'andrew dot collette at gmail dot com',
-  url = 'http://www.h5py.org',
-  download_url = 'http://code.google.com/p/h5py/downloads/list',
-  packages = ['h5py', 'h5py._hl', 'h5py._hl.tests', 'h5py.lowtest'],
+  author = 'John Chilton',
+  author_email = 'jmchilton at gmail dot com',
+  maintainer = 'John Chilton',
+  maintainer_email = 'jmchilton at gmail dot com',
+  url = 'https://github.com/jmchilton/pymz5',
+#  download_url = 'http://code.google.com/p/h5py/downloads/list',
+  packages = ['h5py', 'h5py._hl', 'h5py._hl.tests', 'h5py.lowtest', 'mz5'],
   package_data = package_data,
   ext_modules = EXTENSIONS,
   requires = ['numpy (>=1.0.1)'],

@@ -11,3 +11,5 @@ h5py/defs.*
 build/
 *.pyc
 
+h5py/_mz5_helpers.c
+h5py/_mz5_types.c
