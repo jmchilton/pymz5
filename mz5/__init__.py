@@ -170,17 +170,31 @@ class Mz5(object):
     def get_scan(self, scan_index):
         return Scan(self, scan_index)
 
-    def get_cv_param(self, index):
-        return self.f['CVParam'][index]
-
-    def get_cv_reference(self, index):
-        return self.f['CVReference'][index]
-
     def get_scan_metadata(self, index):
         spectrum = Spectrum()
         dset = self._spectrum_metadata()
         populate_spectrum_metadata(dset.id.id, SPECTRUM_TYPE.raw_id(), index, spectrum)
         return spectrum
+
+    def all_cv_references(self):
+        return self.f['CVReference'][:]
+
+    def cv_reference(self, hdf5_index):  # HDF5 index, second number inf CVParam tuple
+        if not hasattr(self, 'cv_reference_dict'):
+            self.cv_reference_dict = dict(enumerate(self.all_cv_references()))
+        return self.cv_reference_dict[hdf5_index]
+
+    def psimso_cv_reference_index(self, psimso_id):
+        """
+        Takes in a Proteomics Standards Initiative Mass Spectrometry Ontology
+        identifier (psimso_id) and returns the HDF5 CV reference index for that
+        identifier.
+        """
+        if not hasattr(self, 'psimso_index_dict'):
+            # TODO: This hardcodes that MS is the prefix for PSI MSO data
+            # should probably pull this information from 'ControllerVocabulary'
+            self.psimso_index_dict = dict([(ref[2], i) for (i, ref) in enumerate(self.all_cv_references()) if ref[1] == 'MS'])
+        return self.psimso_index_dict[psimso_id]
 
 
 class Scan(object):
@@ -204,6 +218,25 @@ class Scan(object):
         # compute the cumulative sumation of this.
         raw_mzs = self.mz5._spectrum_mz()[start:end]
         return cumsum(raw_mzs) if cumulative else raw_mzs
+
+    def _get_metadata(self):
+        if hasattr(self, 'metadata'):
+            return self.metadata
+        else:
+            metadata = self.mz5.get_scan_metadata(self.scan_index)
+            self.metadata = metadata
+            return metadata
+
+    def first_ion_cv_params(self):
+        metadata = self._get_metadata()
+        params = metadata.first_ion_cv_range()
+        ref_start = params[0]
+        ref_end = params[1]
+        #print ref_start
+        #print ref_end
+        #print params[4], params[5]
+        return self.mz5.f['CVParam'][ref_start:ref_end]
+
 
 #from h5py.h5s import ALL
 #from h5py import h5o

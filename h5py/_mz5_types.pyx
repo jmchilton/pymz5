@@ -23,11 +23,12 @@ cdef class Spectrum:
             return precursor.selectedIonList.len
 
 
-    def first_ion_params(self):
+    def first_ion_cv_range(self):
         cdef ParamListMZ5Data* params = self.first_selected_ion()
         if params is NULL:
-            return 0, 0
-        return params[0].cvParamStartID, params[0].cvParamEndID
+            return (0, 0)
+        cdef ParamListMZ5Data param = params[0]
+        return (param.cvParamStartID, param.cvParamEndID)
 
     cdef ParamListMZ5Data* first_selected_ion(self):
         cdef PrecursorMZ5 precursor
