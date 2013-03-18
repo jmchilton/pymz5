@@ -1,11 +1,8 @@
 from defs cimport *
 
-cdef struct CVParamMZ5:
-    char value[128]
-    unsigned long typeCVRefID
-    unsigned long unitCVRefID
+## Metadata data structures
 
-cdef struct ParamListMZ5Data:
+cdef struct ParamList:
     unsigned long cvParamStartID
     unsigned long cvParamEndID
     unsigned long userParamStartID
@@ -13,65 +10,71 @@ cdef struct ParamListMZ5Data:
     unsigned long refParamGroupStartID
     unsigned long refParamGroupEndID
 
-cdef struct ParamListsMZ5:
-    size_t len
-    ParamListMZ5Data* lists
-
-cdef struct RefMZ5Data:
+cdef struct Ref:
     unsigned long refID
 
-cdef struct ProcessingMethodMZ5:
-    ParamListMZ5Data paramList
-    RefMZ5Data softwareRefID
-    unsigned long order
-
-cdef struct ProcessingMethodListMZ5:
+cdef struct ParamLists:
     size_t len
-    ProcessingMethodMZ5* list
+    ParamList* lists
 
-cdef struct DataProcessingMZ5:
-    char* id
-    ProcessingMethodListMZ5 processingMethodList
-
-cdef struct ScanMZ5:
-    char* externalSpectrumID
-    ParamListMZ5Data paramList
-    ParamListsMZ5 scanWindowList
-    RefMZ5Data instrumentConfigurationRefID
-    RefMZ5Data sourceFileRefID
-    RefMZ5Data spectrumRefID
-
-cdef struct ScanListMZ5:
-    size_t len
-    ScanMZ5* list
-
-cdef struct ScansMZ5:
-    ParamListMZ5Data paramList
-    ScanListMZ5 scanList
-
-cdef struct PrecursorMZ5:
+cdef struct Precursor:
     char* externalSpectrumId
-    ParamListMZ5Data activation
-    ParamListMZ5Data isolationWindow
-    ParamListsMZ5 selectedIonList
-    RefMZ5Data spectrumRefID
-    RefMZ5Data sourceFileRefID
+    ParamList activation
+    ParamList isolationWindow
+    ParamLists selectedIonList
+    Ref spectrumRefID
+    Ref sourceFileRefID
 
-cdef struct PrecursorListMZ5:
+cdef struct Scan:
+    char* externalSpectrumID
+    ParamList paramList
+    ParamLists scanWindowList
+    Ref instrumentConfigurationRefID
+    Ref sourceFileRefID
+    Ref spectrumRefID
+
+cdef struct PrecursorList:
     size_t len
-    PrecursorMZ5* list
+    Precursor* list
 
-cdef struct SpectrumMZ5:
+cdef struct ScanList:
+    size_t len
+    Scan* list
+
+cdef struct Scans:
+    ParamList paramList
+    ScanList scanList
+
+cdef struct SpectrumStruct:
     char* id
     char* spotID
-    ParamListMZ5Data paramList
-    ScansMZ5 scanList
-    PrecursorListMZ5 precursorList
-    ParamListsMZ5 productList
-    RefMZ5Data dataProcessingRefID
-    RefMZ5Data sourceFileRefID
+    ParamList paramList
+    Scans scanList
+    PrecursorList precursorList
+    ParamLists productList
+    Ref dataProcessingRefID
+    Ref sourceFileRefID
     unsigned int index
 
-ctypedef SpectrumMZ5* SpectrumMZ5_ptr
+ctypedef SpectrumStruct* Spectrum_ptr
 
+## Other Data Structures
+
+cdef struct CVParam:
+    char value[128]
+    unsigned long typeCVRefID
+    unsigned long unitCVRefID
+
+cdef struct ProcessingMethodList:
+    size_t len
+    ProcessingMethod* list
+
+cdef struct DataProcessing:
+    char* id
+    ProcessingMethodList processingMethodList
+
+cdef struct ProcessingMethod:
+    ParamList paramList
+    Ref softwareRefID
+    unsigned long order
 

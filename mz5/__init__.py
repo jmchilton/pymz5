@@ -21,38 +21,7 @@ REF_MZ5_SIZE = 8
 PRECURSOR_MZ5_SIZE = 136
 
 
-def _build_spectrum_type():
-    type = CompoundType(SPECTRUM_MZ5_SIZE)
-    type.insert("id", c_vlen_str())
-    type.insert("spotID", c_vlen_str())
-    type.insert("params", build_param_list_mz5_type())
-    type.insert("scans", build_scans_list_mz5_type())
-    type.insert("precursors", build_precursor_list_mz5_type())
-    type.insert("products", build_param_lists_mz5_type())
-    type.insert("refDataProcessing", build_ref_mz5_type())
-    type.insert("refSourceFile", build_ref_mz5_type())
-    type.insert("index", NATIVE_ULONG)
-    type.lock()
-    return type
-
-
-def build_precursor_list_mz5_type():
-    return _vlen_type(build_precursor_mz5_type())
-
-
-def build_precursor_mz5_type():
-    type = CompoundType(PRECURSOR_MZ5_SIZE)
-    type.insert("externalSpectrumId", c_vlen_str())
-    type.insert("activation", build_param_list_mz5_type())
-    type.insert("isolationWindow", build_param_list_mz5_type())
-    type.insert("selectedIonList", build_param_lists_mz5_type())
-    type.insert("refSpectrum", build_ref_mz5_type())
-    type.insert("refSourceFile", build_ref_mz5_type())
-    type.lock()
-    return type
-
-
-def build_param_list_mz5_type():
+def build_param_list_type():
     type = CompoundType(PARAM_LIST_MZ5_SIZE)
     long_type = NATIVE_ULONG
     type.insert("cvstart", long_type)
@@ -65,20 +34,7 @@ def build_param_list_mz5_type():
     return type
 
 
-def build_scan_list_mz5_type():
-    return _vlen_type(build_scan_mz5_type())
-
-
-def build_param_lists_mz5_type():
-    return _vlen_type(build_param_list_mz5_type())
-
-
-def _vlen_type(type):
-    vtype = h5t.vlen_create(type.type_id)
-    return vtype
-
-
-def build_ref_mz5_type():
+def build_ref_type():
     type = CompoundType(REF_MZ5_SIZE)
     long_type = NATIVE_ULONG
     type.insert("refID", long_type)
@@ -86,23 +42,66 @@ def build_ref_mz5_type():
     return type
 
 
-def build_scan_mz5_type():
-    type = CompoundType(SCAN_MZ5_SIZE)
-    type.insert("externalSpectrumID", c_vlen_str())
-    type.insert("params", build_param_list_mz5_type())
-    type.insert("scanWindowList", build_param_lists_mz5_type())
-    type.insert("refInstrumentConfiguration", build_ref_mz5_type())
-    type.insert("refSourceFile", build_ref_mz5_type())
-    type.insert("refSpectrum", build_ref_mz5_type())
+def build_precursor_type():
+    type = CompoundType(PRECURSOR_MZ5_SIZE)
+    type.insert("externalSpectrumId", c_vlen_str())
+    type.insert("activation", build_param_list_type())
+    type.insert("isolationWindow", build_param_list_type())
+    type.insert("selectedIonList", build_param_lists_type())
+    type.insert("refSpectrum", build_ref_type())
+    type.insert("refSourceFile", build_ref_type())
     type.lock()
     return type
 
 
-def build_scans_list_mz5_type():
+def build_scan_type():
+    type = CompoundType(SCAN_MZ5_SIZE)
+    type.insert("externalSpectrumID", c_vlen_str())
+    type.insert("params", build_param_list_type())
+    type.insert("scanWindowList", build_param_lists_type())
+    type.insert("refInstrumentConfiguration", build_ref_type())
+    type.insert("refSourceFile", build_ref_type())
+    type.insert("refSpectrum", build_ref_type())
+    type.lock()
+    return type
+
+
+def build_precursor_list_type():
+    return _vlen_type(build_precursor_type())
+
+
+def build_param_lists_type():
+    return _vlen_type(build_param_list_type())
+
+
+def build_scan_list_type():
+    return _vlen_type(build_scan_type())
+
+
+def _vlen_type(type):
+    vtype = h5t.vlen_create(type.type_id)
+    return vtype
+
+
+def build_scans_list_type():
     type = CompoundType(SCANS_MZ5_SIZE)
-    params = build_param_list_mz5_type()
-    type.insert("params", params)
-    type.insert("scanList", build_scan_list_mz5_type())
+    type.insert("params", build_param_list_type())
+    type.insert("scanList", build_scan_list_type())
+    type.lock()
+    return type
+
+
+def _build_spectrum_type():
+    type = CompoundType(SPECTRUM_MZ5_SIZE)
+    type.insert("id", c_vlen_str())
+    type.insert("spotID", c_vlen_str())
+    type.insert("params", build_param_list_type())
+    type.insert("scanList", build_scans_list_type())
+    type.insert("precursors", build_precursor_list_type())
+    type.insert("products", build_param_lists_type())
+    type.insert("refDataProcessing", build_ref_type())
+    type.insert("refSourceFile", build_ref_type())
+    type.insert("index", NATIVE_ULONG)
     type.lock()
     return type
 
@@ -196,6 +195,9 @@ class Mz5(object):
             self.psimso_index_dict = dict([(ref[2], i) for (i, ref) in enumerate(self.all_cv_references()) if ref[1] == 'MS'])
         return self.psimso_index_dict[psimso_id]
 
+    def __len__(self):
+        return len(self._spectrum_index())
+
 
 class Scan(object):
 
@@ -235,7 +237,10 @@ class Scan(object):
         #print ref_start
         #print ref_end
         #print params[4], params[5]
-        return self.mz5.f['CVParam'][ref_start:ref_end]
+        if ref_start == ref_end:
+            return None
+        else:
+            return self.mz5.f['CVParam'][ref_start:ref_end]
 
 
 #from h5py.h5s import ALL
